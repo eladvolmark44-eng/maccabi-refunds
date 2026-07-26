@@ -200,8 +200,12 @@ function gameTotal(g) {
 
 function renderAll() {
   renderSummary();
-  renderChart();
   renderTable();
+  try {
+    renderChart();
+  } catch (e) {
+    console.error("Chart render failed", e);
+  }
 }
 
 function renderSummary() {
@@ -265,6 +269,17 @@ function renderChart() {
   });
 }
 
+function qtyStepper(gameId, field, icon, value) {
+  return `
+    <div class="qty-stepper">
+      <span class="qty-icon">${icon}</span>
+      <button type="button" class="qty-btn qty-plus" data-id="${gameId}" data-field="${field}" data-dir="1">+</button>
+      <span class="qty-value" data-id="${gameId}" data-field="${field}-value">${value}</span>
+      <button type="button" class="qty-btn qty-minus" data-id="${gameId}" data-field="${field}" data-dir="-1" ${value <= 0 ? "disabled" : ""}>−</button>
+    </div>
+  `;
+}
+
 function renderTable() {
   const grid = document.getElementById("games-grid");
   grid.innerHTML = "";
@@ -291,18 +306,24 @@ function renderTable() {
         <span>${dateStr}${g.final === false ? " (טרם סופי)" : ""}</span>
       </div>
       <div class="game-card-items">
-        <label>🍿<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="popcorn" value="${g.popcorn || 0}" /></label>
-        <label>🍬<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="gummy" value="${g.gummy || 0}" /></label>
-        <label>🥤<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="drink" value="${g.drink || 0}" /></label>
+        ${qtyStepper(g.id, "popcorn", "🍿", g.popcorn || 0)}
+        ${qtyStepper(g.id, "gummy", "🍬", g.gummy || 0)}
+        ${qtyStepper(g.id, "drink", "🥤", g.drink || 0)}
       </div>
       <div class="game-card-total">סה"כ החזר: ₪${gameTotal(g).toLocaleString()}</div>
     `;
     grid.appendChild(card);
   });
 
-  grid.querySelectorAll(".qty-input").forEach((input) => {
-    input.addEventListener("change", (e) => {
-      updateGameField(e.target.dataset.id, e.target.dataset.field, e.target.value);
+  grid.querySelectorAll(".qty-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const gameId = e.currentTarget.dataset.id;
+      const field = e.currentTarget.dataset.field;
+      const dir = parseInt(e.currentTarget.dataset.dir, 10);
+      const g = games.find((x) => x.id === gameId);
+      const current = g ? g[field] || 0 : 0;
+      const next = Math.max(0, current + dir);
+      updateGameField(gameId, field, next);
     });
   });
 

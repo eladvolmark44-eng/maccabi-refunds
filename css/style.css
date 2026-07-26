@@ -159,8 +159,10 @@ main {
   top: 50%;
   left: 6px;
   transform: translateY(-50%);
-  font-size: 1.7rem;
-  filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+  height: 42px;
+  width: auto;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.4));
 }
 
 .pitch-ball {
@@ -168,9 +170,12 @@ main {
   top: 50%;
   left: 88%;
   transform: translate(50%, -50%);
-  font-size: 1.6rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
   transition: left 0.5s ease;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 section.panel {
@@ -265,7 +270,7 @@ section.panel h2 {
   margin-bottom: 14px;
 }
 
-.game-card-items label {
+.qty-stepper {
   flex: 1;
   display: flex;
   align-items: center;
@@ -273,22 +278,43 @@ section.panel h2 {
   gap: 4px;
   background: rgba(0,0,0,0.25);
   border-radius: 10px;
-  padding: 6px 4px;
+  padding: 5px 4px;
 }
 
-.qty-input {
-  width: 34px;
-  padding: 4px 2px;
-  border: none;
-  border-radius: 6px;
+.qty-icon { font-size: 0.95rem; }
+
+.qty-value {
+  min-width: 16px;
   text-align: center;
-  font-size: 0.88rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.qty-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
   background: #fff;
   color: var(--mh-green-dark);
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.qty-input:focus { outline: 2px solid var(--mh-gold); }
+.qty-btn:hover { background: var(--mh-gold); color: #fff; }
+
+.qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.qty-btn:disabled:hover { background: #fff; color: var(--mh-green-dark); }
 
 .game-card-total {
   background: #fff;
