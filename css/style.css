@@ -1,14 +1,16 @@
 :root {
-  --mh-green: #0a7a3c;
-  --mh-green-dark: #06522a;
+  --mh-green: #159447;
+  --mh-green-light: #1fb85a;
+  --mh-green-dark: #0a5c2c;
   --mh-gold: #c9a227;
-  --bg: #f4f6f5;
-  --card-bg: #ffffff;
-  --text: #1c2321;
-  --muted: #6b7570;
-  --border: #e2e6e4;
-  --danger: #c0392b;
-  --ok: #0a7a3c;
+  --bg: #0b0d0b;
+  --bg-alt: #121512;
+  --card-bg: #14201a;
+  --text: #f2f5f3;
+  --muted: #9fada5;
+  --border: #223229;
+  --danger: #e0554f;
+  --ok: #1fb85a;
 }
 
 * { box-sizing: border-box; }
@@ -22,27 +24,29 @@ body {
 }
 
 header.app-header {
-  background: linear-gradient(135deg, var(--mh-green) 0%, var(--mh-green-dark) 100%);
+  background: #000;
   color: #fff;
-  padding: 24px 20px;
+  padding: 18px 20px;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  border-bottom: 1px solid var(--border);
 }
 
 header.app-header h1 {
   margin: 0 0 4px;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
+  font-weight: 800;
 }
 
 header.app-header p {
   margin: 0;
-  opacity: 0.9;
-  font-size: 0.95rem;
+  opacity: 0.75;
+  font-size: 0.92rem;
 }
 
 #connection-banner {
-  background: #fff3cd;
-  color: #7a5c00;
+  background: #2a2205;
+  color: #e8c34a;
+  border-bottom: 1px solid #4a3d0d;
   padding: 10px 16px;
   text-align: center;
   font-size: 0.9rem;
@@ -136,51 +140,104 @@ section.panel h2 {
   margin: 0 auto;
 }
 
-.games-table-wrap { overflow-x: auto; }
-
-table.games-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
 }
 
-table.games-table th {
-  text-align: right;
-  background: #f0f3f1;
-  padding: 8px 10px;
+.games-empty {
+  text-align: center;
   color: var(--muted);
-  font-weight: 600;
-  border-bottom: 2px solid var(--border);
-  white-space: nowrap;
+  padding: 30px 0;
+  grid-column: 1 / -1;
 }
 
-table.games-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+.game-card {
+  position: relative;
+  background: linear-gradient(160deg, var(--mh-green) 0%, var(--mh-green-dark) 100%);
+  border-radius: 16px;
+  padding: 18px 16px 16px;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  overflow: hidden;
 }
 
-table.games-table tr.past-empty { opacity: 0.55; }
-table.games-table tr.not-final .opp-cell::after {
-  content: " (טרם סופי)";
+.game-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.06) 2px, transparent 2px);
+  background-size: 18px 18px;
+  pointer-events: none;
+}
+
+.game-card.not-final { opacity: 0.7; }
+
+.game-card-comp {
+  display: inline-block;
+  background: rgba(0,0,0,0.35);
+  border-radius: 999px;
+  padding: 3px 10px;
   font-size: 0.72rem;
-  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.game-card-opponent {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.game-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-bottom: 14px;
+}
+
+.game-card-items {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.game-card-items label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 6px 4px;
 }
 
 .qty-input {
-  width: 52px;
-  padding: 5px 6px;
-  border: 1px solid var(--border);
+  width: 34px;
+  padding: 4px 2px;
+  border: none;
   border-radius: 6px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  background: #fff;
+  color: var(--mh-green-dark);
+  font-weight: 700;
 }
 
-.qty-input:focus { outline: 2px solid var(--mh-green); }
+.qty-input:focus { outline: 2px solid var(--mh-gold); }
 
-.game-total {
-  font-weight: 700;
+.game-card-total {
+  background: #fff;
   color: var(--mh-green-dark);
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 9px 12px;
 }
 
 .btn {

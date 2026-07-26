@@ -212,42 +212,47 @@ function renderChart() {
 }
 
 function renderTable() {
-  const tbody = document.getElementById("games-tbody");
-  tbody.innerHTML = "";
+  const grid = document.getElementById("games-grid");
+  grid.innerHTML = "";
 
   if (games.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">אין עדיין משחקים ברשימה</td></tr>`;
+    grid.innerHTML = `<div class="games-empty">אין עדיין משחקים ברשימה</div>`;
     return;
   }
 
   games.forEach((g) => {
-    const tr = document.createElement("tr");
-    if (g.final === false) tr.classList.add("not-final");
+    const card = document.createElement("div");
+    card.className = "game-card";
+    if (g.final === false) card.classList.add("not-final");
 
     const dateStr = formatDate(g.date);
     const homeAwayLabel = g.home ? "בית" : "חוץ";
 
-    tr.innerHTML = `
-      <td>${dateStr}</td>
-      <td class="opp-cell">${escapeHtml(g.opponent || "")}</td>
-      <td>${escapeHtml(g.competition || "")}</td>
-      <td>${homeAwayLabel}</td>
-      <td><input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="popcorn" value="${g.popcorn || 0}" /></td>
-      <td><input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="gummy" value="${g.gummy || 0}" /></td>
-      <td><input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="drink" value="${g.drink || 0}" /></td>
-      <td class="game-total">₪${gameTotal(g).toLocaleString()}</td>
-      <td><button class="icon-btn" data-id="${g.id}" title="מחיקת משחק">✕</button></td>
+    card.innerHTML = `
+      <button class="icon-btn" data-id="${g.id}" title="מחיקת משחק">✕</button>
+      <div class="game-card-comp">${escapeHtml(g.competition || "")}</div>
+      <div class="game-card-opponent">נגד ${escapeHtml(g.opponent || "")}</div>
+      <div class="game-card-meta">
+        <span>${homeAwayLabel} • ${escapeHtml(g.venue || "")}</span>
+        <span>${dateStr}${g.final === false ? " (טרם סופי)" : ""}</span>
+      </div>
+      <div class="game-card-items">
+        <label>🍿<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="popcorn" value="${g.popcorn || 0}" /></label>
+        <label>🍬<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="gummy" value="${g.gummy || 0}" /></label>
+        <label>🥤<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="drink" value="${g.drink || 0}" /></label>
+      </div>
+      <div class="game-card-total">סה"כ החזר: ₪${gameTotal(g).toLocaleString()}</div>
     `;
-    tbody.appendChild(tr);
+    grid.appendChild(card);
   });
 
-  tbody.querySelectorAll(".qty-input").forEach((input) => {
+  grid.querySelectorAll(".qty-input").forEach((input) => {
     input.addEventListener("change", (e) => {
       updateGameField(e.target.dataset.id, e.target.dataset.field, e.target.value);
     });
   });
 
-  tbody.querySelectorAll(".icon-btn").forEach((btn) => {
+  grid.querySelectorAll(".icon-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       deleteGame(e.target.dataset.id);
     });
