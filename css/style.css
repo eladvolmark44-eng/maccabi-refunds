@@ -266,12 +266,14 @@ section.panel h2 {
 
 .game-card-items {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
 }
 
 .qty-stepper {
-  flex: 1;
+  flex: 1 1 90px;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
