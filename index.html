@@ -4,12 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>מעקב החזר מנוי - מכבי חיפה</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <header class="app-header">
-  <h1>⚽ מעקב החזר מנוי - מכבי חיפה</h1>
+  <button class="settings-btn" id="open-settings" title="הגדרות מנהל">⚙️</button>
+  <img class="header-logo" src="assets/logo.png" alt="מכבי חיפה" />
+  <h1>מעקב החזר מנוי - מכבי חיפה</h1>
   <p>כמה כבר "החזרנו" מהמנוי בפופקורן, גומי ושתייה?</p>
 </header>
 
@@ -43,14 +46,16 @@
       <span>התקדמות ההחזר</span>
       <span id="progress-text">0% מתוך 2,000 ₪</span>
     </div>
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progress-bar" style="width: 2%;"></div>
+    <div class="pitch-track">
+      <div class="pitch-stripes"></div>
+      <div class="pitch-goal">🥅</div>
+      <div class="pitch-ball" id="progress-ball">⚽</div>
     </div>
   </div>
 
   <section class="panel">
     <h2>פירוט לפי פריט</h2>
-    <div class="item-prices">פופקורן ₪20 | גומי ₪15 | שתייה ₪10</div>
+    <div class="item-prices" id="item-prices-line">פופקורן ₪20 | גומי ₪15 | שתייה ₪10</div>
     <div class="chart-container">
       <canvas id="items-chart" width="300" height="300"></canvas>
     </div>
@@ -70,7 +75,7 @@
 </main>
 
 <footer>
-  נבנה עבור מנויי מכבי חיפה • מחירי הפריטים ניתנים לעדכון בקוד (js/app.js)
+  נבנה עבור מנויי מכבי חיפה • מחירי הפריטים והמנוי ניתנים לעדכון בפאנל ההגדרות (⚙️ למעלה)
 </footer>
 
 <!-- Add game modal -->
@@ -99,6 +104,33 @@
     <div class="modal-actions">
       <button class="btn secondary" id="cancel-add-game">ביטול</button>
       <button class="btn" id="confirm-add-game">הוספה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin settings modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>הגדרות מנהל</h3>
+    <div class="form-row">
+      <label for="set-subscription">מחיר מנוי (מטרה)</label>
+      <input type="number" id="set-subscription" min="0" />
+    </div>
+    <div class="form-row">
+      <label for="set-popcorn">מחיר פופקורן</label>
+      <input type="number" id="set-popcorn" min="0" />
+    </div>
+    <div class="form-row">
+      <label for="set-gummy">מחיר גומי</label>
+      <input type="number" id="set-gummy" min="0" />
+    </div>
+    <div class="form-row">
+      <label for="set-drink">מחיר שתייה</label>
+      <input type="number" id="set-drink" min="0" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="cancel-settings">ביטול</button>
+      <button class="btn" id="save-settings">שמירה</button>
     </div>
   </div>
 </div>

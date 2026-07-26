@@ -24,12 +24,35 @@ body {
 }
 
 header.app-header {
+  position: relative;
   background: #000;
   color: #fff;
   padding: 18px 20px;
   text-align: center;
   border-bottom: 1px solid var(--border);
 }
+
+.header-logo {
+  height: 56px;
+  width: auto;
+  display: block;
+  margin: 0 auto 8px;
+}
+
+.settings-btn {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.1rem;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+.settings-btn:hover { background: rgba(255,255,255,0.16); }
 
 header.app-header h1 {
   margin: 0 0 4px;
@@ -105,20 +128,49 @@ main {
   margin-bottom: 8px;
 }
 
-.progress-bar-bg {
-  background: #e9ecea;
-  border-radius: 999px;
-  height: 22px;
-  overflow: hidden;
+.pitch-track {
   position: relative;
+  height: 54px;
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+    90deg,
+    #1c7a3e 0px, #1c7a3e 40px,
+    #1a6e38 40px, #1a6e38 80px
+  );
+  border: 2px solid #0d3d1e;
+  overflow: hidden;
 }
 
-.progress-bar-fill {
-  background: linear-gradient(90deg, var(--mh-green), var(--mh-gold));
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.4s ease;
-  min-width: 2%;
+.pitch-stripes {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255,255,255,0.05) 0px,
+    rgba(255,255,255,0.05) 2px,
+    transparent 2px,
+    transparent 27px
+  );
+  pointer-events: none;
+}
+
+.pitch-goal {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  transform: translateY(-50%);
+  font-size: 1.7rem;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+}
+
+.pitch-ball {
+  position: absolute;
+  top: 50%;
+  left: 88%;
+  transform: translate(50%, -50%);
+  font-size: 1.6rem;
+  transition: left 0.5s ease;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
 }
 
 section.panel {
@@ -185,9 +237,17 @@ section.panel h2 {
 }
 
 .game-card-opponent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 1.15rem;
   font-weight: 800;
   margin-bottom: 6px;
+}
+
+.game-card-logo {
+  height: 26px;
+  width: auto;
 }
 
 .game-card-meta {
@@ -253,7 +313,7 @@ section.panel h2 {
 .btn:hover { background: var(--mh-green-dark); }
 .btn.secondary {
   background: transparent;
-  color: var(--mh-green-dark);
+  color: var(--mh-green-light);
   border: 1px solid var(--mh-green);
 }
 .btn.danger { background: var(--danger); }
@@ -278,14 +338,16 @@ section.panel h2 {
 .modal-overlay.show { display: flex; }
 
 .modal {
-  background: #fff;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
   width: 100%;
   max-width: 420px;
+  color: var(--text);
 }
 
-.modal h3 { margin-top: 0; }
+.modal h3 { margin-top: 0; color: #fff; }
 
 .form-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
 .form-row label { font-size: 0.85rem; color: var(--muted); }
@@ -294,6 +356,8 @@ section.panel h2 {
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.92rem;
+  background: var(--bg-alt);
+  color: var(--text);
 }
 
 .modal-actions {
