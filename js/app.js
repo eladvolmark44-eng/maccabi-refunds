@@ -2,12 +2,16 @@
 // מעקב החזר מנוי - מכבי חיפה
 // ============================================================
 
-const PRICES = { popcorn: 20, gummy: 15, drink: 10 };
+const DEFAULT_PRICES = { popcorn: 20, gummy: 15, drink: 10 };
+const DEFAULT_SUBSCRIPTION_PRICE = 2000;
 const ITEM_LABELS = { popcorn: "פופקורן", gummy: "גומי", drink: "שתייה" };
 const ITEM_COLORS = { popcorn: "#c9a227", gummy: "#e05d5d", drink: "#0a7a3c" };
-const SUBSCRIPTION_PRICE = 2000;
 const LOCAL_STORAGE_KEY = "mh-refund-games-v1";
 const SEED_FLAG_KEY = "mh-refund-seeded-v1";
+const SETTINGS_STORAGE_KEY = "mh-refund-settings-v1";
+
+let PRICES = { ...DEFAULT_PRICES };
+let SUBSCRIPTION_PRICE = DEFAULT_SUBSCRIPTION_PRICE;
 
 let games = []; // in-memory cache of games, each: {id, date, competition, opponent, venue, home, final, popcorn, gummy, drink}
 let chart = null;
@@ -33,6 +37,7 @@ function initStorage() {
       document.getElementById("connection-banner").classList.remove("show");
       seedIfEmptyFirestore();
       listenFirestore();
+      listenFirestoreSettings();
       return;
     } catch (e) {
       console.error("Firebase init failed, falling back to local storage", e);
@@ -40,9 +45,50 @@ function initStorage() {
   }
   usingFirestore = false;
   document.getElementById("connection-banner").classList.add("show");
+  loadLocalSettings();
   loadLocal();
   seedIfEmptyLocal();
   renderAll();
+}
+
+// ---------- Settings (subscription price + item prices) ----------
+
+function loadLocalSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.subscriptionPrice) SUBSCRIPTION_PRICE = s.subscriptionPrice;
+    if (s.prices) PRICES = { ...PRICES, ...s.prices };
+  } catch (e) {
+    console.error("Failed to load settings", e);
+  }
+}
+
+function listenFirestoreSettings() {
+  db.collection("settings").doc("config").onSnapshot(
+    (doc) => {
+      if (!doc.exists) return;
+      const s = doc.data();
+      if (s.subscriptionPrice) SUBSCRIPTION_PRICE = s.subscriptionPrice;
+      if (s.prices) PRICES = { ...PRICES, ...s.prices };
+      renderAll();
+    },
+    (err) => console.error("Settings listen error", err)
+  );
+}
+
+function saveSettings(subscriptionPrice, prices) {
+  SUBSCRIPTION_PRICE = subscriptionPrice;
+  PRICES = { ...prices };
+  if (usingFirestore) {
+    db.collection("settings").doc("config")
+      .set({ subscriptionPrice: SUBSCRIPTION_PRICE, prices: PRICES })
+      .catch((e) => console.error("Failed to save settings", e));
+  } else {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ subscriptionPrice: SUBSCRIPTION_PRICE, prices: PRICES }));
+    renderAll();
+  }
 }
 
 function seedIfEmptyFirestore() {
@@ -170,8 +216,16 @@ function renderSummary() {
     remaining > 0 ? `₪${remaining.toLocaleString()}` : `כוסה! +₪${(totalRefund - SUBSCRIPTION_PRICE).toLocaleString()}`;
 
   const barPercent = Math.min(100, percent);
-  document.getElementById("progress-bar").style.width = `${Math.max(2, barPercent)}%`;
+  const minLeft = 12;
+  const maxLeft = 90;
+  const ballLeft = maxLeft - (barPercent / 100) * (maxLeft - minLeft);
+  document.getElementById("progress-ball").style.left = `${ballLeft}%`;
   document.getElementById("progress-text").textContent = `${percent.toFixed(1)}% מתוך ${SUBSCRIPTION_PRICE.toLocaleString()} ₪`;
+
+  const priceLine = document.getElementById("item-prices-line");
+  if (priceLine) {
+    priceLine.textContent = `פופקורן ₪${PRICES.popcorn} | גומי ₪${PRICES.gummy} | שתייה ₪${PRICES.drink}`;
+  }
 }
 
 function renderChart() {
@@ -212,42 +266,47 @@ function renderChart() {
 }
 
 function renderTable() {
-  const tbody = document.getElementById("games-tbody");
-  tbody.innerHTML = "";
+  const grid = document.getElementById("games-grid");
+  grid.innerHTML = "";
 
   if (games.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">אין עדיין משחקים ברשימה</td></tr>`;
+    grid.innerHTML = `<div class="games-empty">אין עדיין משחקים ברשימה</div>`;
     return;
   }
 
   games.forEach((g) => {
-    const tr = document.createElement("tr");
-    if (g.final === false) tr.classList.add("not-final");
+    const card = document.createElement("div");
+    card.className = "game-card";
+    if (g.final === false) card.classList.add("not-final");
 
     const dateStr = formatDate(g.date);
     const homeAwayLabel = g.home ? "בית" : "חוץ";
 
-    tr.innerHTML = `
-      <td>${dateStr}</td>
-      <td class="opp-cell">${escapeHtml(g.opponent || "")}</td>
-      <td>${escapeHtml(g.competition || "")}</td>
-      <td>${homeAwayLabel}</td>
-      <td><input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="popcorn" value="${g.popcorn || 0}" /></td>
-      <td><input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="gummy" value="${g.gummy || 0}" /></td>
-      <td><input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="drink" value="${g.drink || 0}" /></td>
-      <td class="game-total">₪${gameTotal(g).toLocaleString()}</td>
-      <td><button class="icon-btn" data-id="${g.id}" title="מחיקת משחק">✕</button></td>
+    card.innerHTML = `
+      <button class="icon-btn" data-id="${g.id}" title="מחיקת משחק">✕</button>
+      <div class="game-card-comp">${escapeHtml(g.competition || "")}</div>
+      <div class="game-card-opponent"><img class="game-card-logo" src="assets/logo.png" alt="מכבי חיפה" />נגד ${escapeHtml(g.opponent || "")}</div>
+      <div class="game-card-meta">
+        <span>${homeAwayLabel} • ${escapeHtml(g.venue || "")}</span>
+        <span>${dateStr}${g.final === false ? " (טרם סופי)" : ""}</span>
+      </div>
+      <div class="game-card-items">
+        <label>🍿<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="popcorn" value="${g.popcorn || 0}" /></label>
+        <label>🍬<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="gummy" value="${g.gummy || 0}" /></label>
+        <label>🥤<input type="number" min="0" class="qty-input" data-id="${g.id}" data-field="drink" value="${g.drink || 0}" /></label>
+      </div>
+      <div class="game-card-total">סה"כ החזר: ₪${gameTotal(g).toLocaleString()}</div>
     `;
-    tbody.appendChild(tr);
+    grid.appendChild(card);
   });
 
-  tbody.querySelectorAll(".qty-input").forEach((input) => {
+  grid.querySelectorAll(".qty-input").forEach((input) => {
     input.addEventListener("change", (e) => {
       updateGameField(e.target.dataset.id, e.target.dataset.field, e.target.value);
     });
   });
 
-  tbody.querySelectorAll(".icon-btn").forEach((btn) => {
+  grid.querySelectorAll(".icon-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       deleteGame(e.target.dataset.id);
     });
@@ -302,9 +361,36 @@ function setupModal() {
   });
 }
 
+// ---------- Admin settings modal ----------
+
+function setupSettingsModal() {
+  const overlay = document.getElementById("settings-modal");
+  document.getElementById("open-settings").addEventListener("click", () => {
+    document.getElementById("set-subscription").value = SUBSCRIPTION_PRICE;
+    document.getElementById("set-popcorn").value = PRICES.popcorn;
+    document.getElementById("set-gummy").value = PRICES.gummy;
+    document.getElementById("set-drink").value = PRICES.drink;
+    overlay.classList.add("show");
+  });
+  document.getElementById("cancel-settings").addEventListener("click", () => {
+    overlay.classList.remove("show");
+  });
+  document.getElementById("save-settings").addEventListener("click", () => {
+    const subscriptionPrice = Math.max(0, parseInt(document.getElementById("set-subscription").value, 10) || 0);
+    const prices = {
+      popcorn: Math.max(0, parseInt(document.getElementById("set-popcorn").value, 10) || 0),
+      gummy: Math.max(0, parseInt(document.getElementById("set-gummy").value, 10) || 0),
+      drink: Math.max(0, parseInt(document.getElementById("set-drink").value, 10) || 0),
+    };
+    saveSettings(subscriptionPrice, prices);
+    overlay.classList.remove("show");
+  });
+}
+
 // ---------- Init ----------
 
 document.addEventListener("DOMContentLoaded", () => {
   setupModal();
+  setupSettingsModal();
   initStorage();
 });

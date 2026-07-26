@@ -10,6 +10,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // אוסף "settings" - מחיר המנוי ומחירי הפריטים (פאנל מנהל)
+    match /settings/{docId} {
+      allow read, write: if true;
+    }
+
     // חסימת כל השאר כברירת מחדל
     match /{document=**} {
       allow read, write: if false;
