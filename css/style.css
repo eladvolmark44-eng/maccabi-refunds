@@ -265,22 +265,21 @@ section.panel h2 {
 }
 
 .game-card-items {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 14px;
 }
 
 .qty-stepper {
-  flex: 1 1 90px;
-  min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   background: rgba(0,0,0,0.25);
   border-radius: 10px;
-  padding: 5px 4px;
+  padding: 8px 4px;
 }
 
 .qty-icon { font-size: 0.95rem; }
