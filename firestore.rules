@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // אוסף "games" - פתוח לקריאה וכתיבה לכל מי שיש לו קישור לאתר.
+    // מתאים לשימוש פרטי בין בני משפחה/חברים שסומכים אחד על השני.
+    // אם רוצים הגנה טובה יותר, אפשר להוסיף Firebase Authentication
+    // ולשנות את התנאי כאן ל-request.auth != null
+    match /games/{gameId} {
+      allow read, write: if true;
+    }
+
+    // חסימת כל השאר כברירת מחדל
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

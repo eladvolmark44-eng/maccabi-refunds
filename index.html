@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>מעקב החזר מנוי - מכבי חיפה</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <h1>⚽ מעקב החזר מנוי - מכבי חיפה</h1>
+  <p>כמה כבר "החזרנו" מהמנוי בפופקורן, גומי ושתייה?</p>
+</header>
+
+<div id="connection-banner">
+  ⚠️ Firebase לא מוגדר עדיין. ערכו את הקובץ <code>js/firebase-config.js</code> לפי ההוראות ב-README, אחרת הנתונים לא יישמרו/יתעדכנו בין המכשירים.
+</div>
+
+<main>
+
+  <section class="summary-grid">
+    <div class="card">
+      <div class="label">מחיר המנוי</div>
+      <div class="value" id="stat-subscription">₪2,000</div>
+    </div>
+    <div class="card">
+      <div class="label">סה"כ הוחזר עד כה</div>
+      <div class="value green" id="stat-refunded">₪0</div>
+    </div>
+    <div class="card">
+      <div class="label">אחוז החזר מהמנוי</div>
+      <div class="value gold" id="stat-percent">0%</div>
+    </div>
+    <div class="card">
+      <div class="label">נשאר עד כיסוי מלא</div>
+      <div class="value" id="stat-remaining">₪2,000</div>
+    </div>
+  </section>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>התקדמות ההחזר</span>
+      <span id="progress-text">0% מתוך 2,000 ₪</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-bar" style="width: 2%;"></div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>פירוט לפי פריט</h2>
+    <div class="item-prices">פופקורן ₪20 | גומי ₪15 | שתייה ₪10</div>
+    <div class="chart-container">
+      <canvas id="items-chart" width="300" height="300"></canvas>
+    </div>
+    <div class="legend-row" id="items-legend"></div>
+  </section>
+
+  <section class="panel">
+    <h2>היסטוריית משחקים</h2>
+    <div class="games-table-wrap">
+      <table class="games-table">
+        <thead>
+          <tr>
+            <th>תאריך</th>
+            <th>יריב</th>
+            <th>מפעל</th>
+            <th>בית/חוץ</th>
+            <th>🍿 פופקורן</th>
+            <th>🍬 גומי</th>
+            <th>🥤 שתייה</th>
+            <th>סה"כ החזר</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="games-tbody">
+          <!-- rows injected by app.js -->
+        </tbody>
+      </table>
+    </div>
+    <div class="add-game-row">
+      <button class="btn secondary" id="open-add-game">+ הוסף משחק</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  נבנה עבור מנויי מכבי חיפה • מחירי הפריטים ניתנים לעדכון בקוד (js/app.js)
+</footer>
+
+<!-- Add game modal -->
+<div class="modal-overlay" id="add-game-modal">
+  <div class="modal">
+    <h3>הוספת משחק</h3>
+    <div class="form-row">
+      <label for="ng-date">תאריך</label>
+      <input type="date" id="ng-date" />
+    </div>
+    <div class="form-row">
+      <label for="ng-competition">מפעל</label>
+      <input type="text" id="ng-competition" placeholder="לדוגמה: ליגת Winner" />
+    </div>
+    <div class="form-row">
+      <label for="ng-opponent">יריב</label>
+      <input type="text" id="ng-opponent" placeholder="לדוגמה: מכבי תל אביב" />
+    </div>
+    <div class="form-row">
+      <label for="ng-home">בית/חוץ</label>
+      <select id="ng-home">
+        <option value="true">בית (סמי עופר)</option>
+        <option value="false">חוץ</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="cancel-add-game">ביטול</button>
+      <button class="btn" id="confirm-add-game">הוספה</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/games-data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
