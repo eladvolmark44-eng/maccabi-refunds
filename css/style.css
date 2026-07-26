@@ -267,8 +267,8 @@ section.panel h2 {
 .game-card-items {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .qty-stepper {
@@ -276,31 +276,31 @@ section.panel h2 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   background: rgba(0,0,0,0.25);
-  border-radius: 10px;
-  padding: 8px 4px;
+  border-radius: 8px;
+  padding: 5px 3px;
 }
 
-.qty-icon { font-size: 0.95rem; }
+.qty-icon { font-size: 0.75rem; }
 
 .qty-value {
-  min-width: 16px;
+  min-width: 13px;
   text-align: center;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #fff;
 }
 
 .qty-btn {
-  width: 22px;
-  height: 22px;
+  width: 17px;
+  height: 17px;
   padding: 0;
   border: none;
   border-radius: 50%;
   background: #fff;
   color: var(--mh-green-dark);
-  font-size: 0.95rem;
+  font-size: 0.72rem;
   font-weight: 800;
   line-height: 1;
   cursor: pointer;
