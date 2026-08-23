@@ -229,8 +229,6 @@ section.panel h2 {
   pointer-events: none;
 }
 
-.game-card.not-final { opacity: 0.7; }
-
 .game-card-comp {
   display: inline-block;
   background: rgba(0,0,0,0.35);

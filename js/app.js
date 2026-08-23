@@ -333,7 +333,6 @@ function renderTable() {
   games.forEach((g) => {
     const card = document.createElement("div");
     card.className = "game-card";
-    if (g.final === false) card.classList.add("not-final");
 
     const dateStr = formatDate(g.date);
     const homeAwayLabel = g.home ? "בית" : "חוץ";
@@ -344,7 +343,7 @@ function renderTable() {
       <div class="game-card-opponent"><img class="game-card-logo" src="assets/logo.png" alt="מכבי חיפה" />נגד ${escapeHtml(g.opponent || "")}</div>
       <div class="game-card-meta">
         <span>${homeAwayLabel} • ${escapeHtml(g.venue || "")}</span>
-        <span>${dateStr}${g.final === false ? " (טרם סופי)" : ""}</span>
+        <span>${dateStr}</span>
       </div>
       <div class="game-card-items">
         ${qtyStepper(g.id, "popcorn", "🍿", g.popcorn || 0)}
