@@ -48,6 +48,7 @@ function initStorage() {
   loadLocalSettings();
   loadLocal();
   seedIfEmptyLocal();
+  migrateGameMetadata();
   renderAll();
 }
 
@@ -108,6 +109,7 @@ function listenFirestore() {
   db.collection("games").orderBy("date").onSnapshot(
     (snap) => {
       games = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      migrateGameMetadata();
       renderAll();
     },
     (err) => {
@@ -115,6 +117,45 @@ function listenFirestore() {
       document.getElementById("connection-banner").classList.add("show");
     }
   );
+}
+
+// Reconciles previously-saved games (date/venue/home/final) against the current
+// SEASON_GAMES_SEED whenever the schedule is corrected in code, without touching
+// the popcorn/gummy/drink counts a user already entered. Matches each saved game
+// to the seed entry for the same opponent+competition whose date is closest,
+// since most opponents appear twice a season (home leg + away leg).
+function migrateGameMetadata() {
+  let localChanged = false;
+  games.forEach((g) => {
+    const candidates = SEASON_GAMES_SEED.filter(
+      (s) => s.opponent === g.opponent && s.competition === g.competition
+    );
+    if (candidates.length === 0) return;
+
+    let best = candidates[0];
+    let bestDiff = Math.abs(new Date(g.date) - new Date(best.date));
+    candidates.forEach((c) => {
+      const diff = Math.abs(new Date(g.date) - new Date(c.date));
+      if (diff < bestDiff) {
+        best = c;
+        bestDiff = diff;
+      }
+    });
+
+    const updates = {};
+    ["date", "venue", "home", "final"].forEach((field) => {
+      if (g[field] !== best[field]) updates[field] = best[field];
+    });
+
+    if (Object.keys(updates).length > 0) {
+      Object.assign(g, updates);
+      localChanged = true;
+      if (usingFirestore) {
+        db.collection("games").doc(g.id).update(updates).catch((e) => console.error("Schedule migration failed", e));
+      }
+    }
+  });
+  if (!usingFirestore && localChanged) saveLocal();
 }
 
 function loadLocal() {
