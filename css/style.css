@@ -288,6 +288,14 @@ section.panel h2 {
 
 .qty-icon { font-size: 0.75rem; }
 
+.qty-icon-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  object-fit: cover;
+  display: block;
+}
+
 .qty-value {
   min-width: 13px;
   text-align: center;
