@@ -6,7 +6,8 @@ const DEFAULT_PRICES = { popcorn: 25, gummy: 17, drink: 15, icecream: 10, beigal
 const DEFAULT_SUBSCRIPTION_PRICE = 2000;
 const ITEM_LABELS = { popcorn: "פופקורן", gummy: "גומי", drink: "שתייה", icecream: "קסטה", beigale: "בייגלה" };
 const ITEM_COLORS = { popcorn: "#c9a227", gummy: "#e05d5d", drink: "#0a7a3c", icecream: "#4fc3e0", beigale: "#b5794a" };
-const ITEM_ICONS = { popcorn: "🍿", gummy: "🍬", drink: "🥤", icecream: "🍦", beigale: "🥨" };
+// A value starting with "img:" renders as a small photo instead of an emoji.
+const ITEM_ICONS = { popcorn: "🍿", gummy: "🍬", drink: "🥤", icecream: "img:assets/kasta.jpg", beigale: "🥨" };
 const LOCAL_STORAGE_KEY = "mh-refund-games-v1";
 const SEED_FLAG_KEY = "mh-refund-seeded-v1";
 const SETTINGS_STORAGE_KEY = "mh-refund-settings-v1";
@@ -382,9 +383,13 @@ function renderChart() {
 }
 
 function qtyStepper(gameId, field, icon, value) {
+  const iconHtml = icon.startsWith("img:")
+    ? `<img class="qty-icon-img" src="${icon.slice(4)}" alt="" />`
+    : `<span class="qty-icon">${icon}</span>`;
+
   return `
     <div class="qty-stepper">
-      <span class="qty-icon">${icon}</span>
+      ${iconHtml}
       <button type="button" class="qty-btn qty-plus" data-id="${gameId}" data-field="${field}" data-dir="1">+</button>
       <span class="qty-value" data-id="${gameId}" data-field="${field}-value">${value}</span>
       <button type="button" class="qty-btn qty-minus" data-id="${gameId}" data-field="${field}" data-dir="-1" ${value <= 0 ? "disabled" : ""}>−</button>
