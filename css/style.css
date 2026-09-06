@@ -269,6 +269,12 @@ section.panel h2 {
   margin-bottom: 12px;
 }
 
+/* When there's an odd number of items, let the last one span the full
+   width instead of leaving a lone half-empty row. */
+.game-card-items:has(.qty-stepper:nth-child(odd):last-child) .qty-stepper:last-child {
+  grid-column: 1 / -1;
+}
+
 .qty-stepper {
   display: flex;
   flex-direction: column;

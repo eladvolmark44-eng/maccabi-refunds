@@ -2,11 +2,11 @@
 // מעקב החזר מנוי - מכבי חיפה
 // ============================================================
 
-const DEFAULT_PRICES = { popcorn: 20, gummy: 15, drink: 10, icecream: 15 };
+const DEFAULT_PRICES = { popcorn: 25, gummy: 17, drink: 15, icecream: 10, beigale: 15 };
 const DEFAULT_SUBSCRIPTION_PRICE = 2000;
-const ITEM_LABELS = { popcorn: "פופקורן", gummy: "גומי", drink: "שתייה", icecream: "גלידה" };
-const ITEM_COLORS = { popcorn: "#c9a227", gummy: "#e05d5d", drink: "#0a7a3c", icecream: "#4fc3e0" };
-const ITEM_ICONS = { popcorn: "🍿", gummy: "🍬", drink: "🥤", icecream: "🍦" };
+const ITEM_LABELS = { popcorn: "פופקורן", gummy: "גומי", drink: "שתייה", icecream: "קסטה", beigale: "בייגלה" };
+const ITEM_COLORS = { popcorn: "#c9a227", gummy: "#e05d5d", drink: "#0a7a3c", icecream: "#4fc3e0", beigale: "#b5794a" };
+const ITEM_ICONS = { popcorn: "🍿", gummy: "🍬", drink: "🥤", icecream: "🍦", beigale: "🥨" };
 const LOCAL_STORAGE_KEY = "mh-refund-games-v1";
 const SEED_FLAG_KEY = "mh-refund-seeded-v1";
 const SETTINGS_STORAGE_KEY = "mh-refund-settings-v1";
