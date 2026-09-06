@@ -2,10 +2,11 @@
 // מעקב החזר מנוי - מכבי חיפה
 // ============================================================
 
-const DEFAULT_PRICES = { popcorn: 20, gummy: 15, drink: 10 };
+const DEFAULT_PRICES = { popcorn: 20, gummy: 15, drink: 10, icecream: 15 };
 const DEFAULT_SUBSCRIPTION_PRICE = 2000;
-const ITEM_LABELS = { popcorn: "פופקורן", gummy: "גומי", drink: "שתייה" };
-const ITEM_COLORS = { popcorn: "#c9a227", gummy: "#e05d5d", drink: "#0a7a3c" };
+const ITEM_LABELS = { popcorn: "פופקורן", gummy: "גומי", drink: "שתייה", icecream: "גלידה" };
+const ITEM_COLORS = { popcorn: "#c9a227", gummy: "#e05d5d", drink: "#0a7a3c", icecream: "#4fc3e0" };
+const ITEM_ICONS = { popcorn: "🍿", gummy: "🍬", drink: "🥤", icecream: "🍦" };
 const LOCAL_STORAGE_KEY = "mh-refund-games-v1";
 const SEED_FLAG_KEY = "mh-refund-seeded-v1";
 const SETTINGS_STORAGE_KEY = "mh-refund-settings-v1";
@@ -13,7 +14,7 @@ const SETTINGS_STORAGE_KEY = "mh-refund-settings-v1";
 let PRICES = { ...DEFAULT_PRICES };
 let SUBSCRIPTION_PRICE = DEFAULT_SUBSCRIPTION_PRICE;
 
-let games = []; // in-memory cache of games, each: {id, date, competition, opponent, venue, home, final, popcorn, gummy, drink}
+let games = []; // in-memory cache of games, each: {id, date, competition, opponent, venue, home, final, popcorn, gummy, drink, icecream}
 let chart = null;
 let usingFirestore = false;
 let db = null;
@@ -24,6 +25,24 @@ function isFirebaseConfigured() {
 
 function uid() {
   return "g_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+}
+
+// All trackable snack categories, in display order. Adding a new one only
+// requires an entry in DEFAULT_PRICES/ITEM_LABELS/ITEM_COLORS/ITEM_ICONS above.
+const ITEM_KEYS = Object.keys(ITEM_LABELS);
+
+function zeroQuantities() {
+  const q = {};
+  ITEM_KEYS.forEach((k) => (q[k] = 0));
+  return q;
+}
+
+// Stable ID for a seeded game, so re-seeding an empty collection twice
+// (e.g. two tabs loading at once) writes the same 29 docs instead of
+// creating duplicates.
+function gameDocId(g) {
+  const slug = (s) => (s || "").replace(/["'׳״]/g, "").replace(/[^a-zA-Z0-9א-ת]+/g, "-");
+  return `${g.date}_${slug(g.competition)}_${slug(g.opponent)}`;
 }
 
 // ---------- Storage layer (Firestore if configured, else localStorage) ----------
@@ -49,6 +68,7 @@ function initStorage() {
   loadLocal();
   seedIfEmptyLocal();
   migrateGameMetadata();
+  dedupeGames();
   renderAll();
 }
 
@@ -97,8 +117,8 @@ function seedIfEmptyFirestore() {
     if (snap.empty) {
       const batch = db.batch();
       SEASON_GAMES_SEED.forEach((g) => {
-        const ref = db.collection("games").doc();
-        batch.set(ref, { ...g, popcorn: 0, gummy: 0, drink: 0 });
+        const ref = db.collection("games").doc(gameDocId(g));
+        batch.set(ref, { ...g, ...zeroQuantities() });
       });
       batch.commit().catch((e) => console.error("Seed failed", e));
     }
@@ -110,6 +130,7 @@ function listenFirestore() {
     (snap) => {
       games = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       migrateGameMetadata();
+      dedupeGames();
       renderAll();
     },
     (err) => {
@@ -158,6 +179,45 @@ function migrateGameMetadata() {
   if (!usingFirestore && localChanged) saveLocal();
 }
 
+// Cleans up duplicate game entries (same date+opponent+competition) that could
+// have been created by a race in seedIfEmptyFirestore (two tabs both seeding an
+// empty collection before either commit finished). Keeps one copy per fixture,
+// merging in the highest quantity seen per item so no tracked snack count is lost.
+function dedupeGames() {
+  const canonicalByKey = new Map();
+  const duplicateIds = [];
+
+  games.forEach((g) => {
+    const key = `${g.date}|${g.opponent}|${g.competition}`;
+    const existing = canonicalByKey.get(key);
+    if (!existing) {
+      canonicalByKey.set(key, g);
+      return;
+    }
+    ITEM_KEYS.forEach((item) => {
+      existing[item] = Math.max(existing[item] || 0, g[item] || 0);
+    });
+    duplicateIds.push(g.id);
+  });
+
+  if (duplicateIds.length === 0) return;
+
+  games = games.filter((g) => !duplicateIds.includes(g.id));
+
+  if (usingFirestore) {
+    const batch = db.batch();
+    duplicateIds.forEach((id) => batch.delete(db.collection("games").doc(id)));
+    canonicalByKey.forEach((g) => {
+      const quantities = {};
+      ITEM_KEYS.forEach((item) => (quantities[item] = g[item] || 0));
+      batch.update(db.collection("games").doc(g.id), quantities);
+    });
+    batch.commit().catch((e) => console.error("Dedup failed", e));
+  } else {
+    saveLocal();
+  }
+}
+
 function loadLocal() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -174,7 +234,7 @@ function saveLocal() {
 function seedIfEmptyLocal() {
   if (localStorage.getItem(SEED_FLAG_KEY)) return;
   if (games.length === 0) {
-    games = SEASON_GAMES_SEED.map((g) => ({ id: uid(), ...g, popcorn: 0, gummy: 0, drink: 0 }));
+    games = SEASON_GAMES_SEED.map((g) => ({ id: uid(), ...g, ...zeroQuantities() }));
     saveLocal();
   }
   localStorage.setItem(SEED_FLAG_KEY, "1");
@@ -195,7 +255,7 @@ function updateGameField(gameId, field, value) {
 }
 
 function addGame(game) {
-  const newGame = { ...game, popcorn: 0, gummy: 0, drink: 0, final: true };
+  const newGame = { ...game, ...zeroQuantities(), final: true };
   if (usingFirestore) {
     db.collection("games").add(newGame).catch((e) => console.error(e));
   } else {
@@ -221,9 +281,9 @@ function deleteGame(gameId) {
 
 function computeTotals() {
   let totalRefund = 0;
-  const perItem = { popcorn: 0, gummy: 0, drink: 0 };
+  const perItem = zeroQuantities();
   games.forEach((g) => {
-    ["popcorn", "gummy", "drink"].forEach((item) => {
+    ITEM_KEYS.forEach((item) => {
       const qty = g[item] || 0;
       const val = qty * PRICES[item];
       totalRefund += val;
@@ -234,7 +294,7 @@ function computeTotals() {
 }
 
 function gameTotal(g) {
-  return (g.popcorn || 0) * PRICES.popcorn + (g.gummy || 0) * PRICES.gummy + (g.drink || 0) * PRICES.drink;
+  return ITEM_KEYS.reduce((sum, item) => sum + (g[item] || 0) * PRICES[item], 0);
 }
 
 // ---------- Rendering ----------
@@ -269,7 +329,7 @@ function renderSummary() {
 
   const priceLine = document.getElementById("item-prices-line");
   if (priceLine) {
-    priceLine.textContent = `פופקורן ₪${PRICES.popcorn} | גומי ₪${PRICES.gummy} | שתייה ₪${PRICES.drink}`;
+    priceLine.textContent = ITEM_KEYS.map((k) => `${ITEM_LABELS[k]} ₪${PRICES[k]}`).join(" | ");
   }
 }
 
@@ -289,8 +349,8 @@ function renderChart() {
       labels,
       datasets: [
         {
-          data: hasData ? data : [1, 1, 1],
-          backgroundColor: hasData ? colors : ["#e9ecea", "#e9ecea", "#e9ecea"],
+          data: hasData ? data : data.map(() => 1),
+          backgroundColor: hasData ? colors : data.map(() => "#e9ecea"),
           borderWidth: 0,
         },
       ],
@@ -346,9 +406,7 @@ function renderTable() {
         <span>${dateStr}</span>
       </div>
       <div class="game-card-items">
-        ${qtyStepper(g.id, "popcorn", "🍿", g.popcorn || 0)}
-        ${qtyStepper(g.id, "gummy", "🍬", g.gummy || 0)}
-        ${qtyStepper(g.id, "drink", "🥤", g.drink || 0)}
+        ${ITEM_KEYS.map((item) => qtyStepper(g.id, item, ITEM_ICONS[item], g[item] || 0)).join("")}
       </div>
       <div class="game-card-total">סה"כ החזר: ₪${gameTotal(g).toLocaleString()}</div>
     `;
@@ -428,9 +486,10 @@ function setupSettingsModal() {
   const overlay = document.getElementById("settings-modal");
   document.getElementById("open-settings").addEventListener("click", () => {
     document.getElementById("set-subscription").value = SUBSCRIPTION_PRICE;
-    document.getElementById("set-popcorn").value = PRICES.popcorn;
-    document.getElementById("set-gummy").value = PRICES.gummy;
-    document.getElementById("set-drink").value = PRICES.drink;
+    ITEM_KEYS.forEach((item) => {
+      const input = document.getElementById(`set-${item}`);
+      if (input) input.value = PRICES[item];
+    });
     overlay.classList.add("show");
   });
   document.getElementById("cancel-settings").addEventListener("click", () => {
@@ -438,11 +497,11 @@ function setupSettingsModal() {
   });
   document.getElementById("save-settings").addEventListener("click", () => {
     const subscriptionPrice = Math.max(0, parseInt(document.getElementById("set-subscription").value, 10) || 0);
-    const prices = {
-      popcorn: Math.max(0, parseInt(document.getElementById("set-popcorn").value, 10) || 0),
-      gummy: Math.max(0, parseInt(document.getElementById("set-gummy").value, 10) || 0),
-      drink: Math.max(0, parseInt(document.getElementById("set-drink").value, 10) || 0),
-    };
+    const prices = {};
+    ITEM_KEYS.forEach((item) => {
+      const input = document.getElementById(`set-${item}`);
+      prices[item] = Math.max(0, parseInt(input ? input.value : PRICES[item], 10) || 0);
+    });
     saveSettings(subscriptionPrice, prices);
     overlay.classList.remove("show");
   });

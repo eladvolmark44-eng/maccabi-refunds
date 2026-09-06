@@ -264,7 +264,7 @@ section.panel h2 {
 
 .game-card-items {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-bottom: 12px;
 }
