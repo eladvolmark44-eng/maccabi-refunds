@@ -140,31 +140,37 @@ function listenFirestore() {
   );
 }
 
-// Reconciles previously-saved games (date/venue/home/final) against the current
-// SEASON_GAMES_SEED whenever the schedule is corrected in code, without touching
-// the popcorn/gummy/drink counts a user already entered. Matches each saved game
-// to the seed entry for the same opponent+competition whose date is closest,
-// since most opponents appear twice a season (home leg + away leg).
+// Reconciles previously-saved games (date/opponent/venue/home/final) against the
+// current SEASON_GAMES_SEED whenever the schedule is corrected in code, without
+// touching the popcorn/gummy/drink/... counts a user already entered. A team
+// plays at most one match per day, so an exact date match is the most reliable
+// way to find the right seed entry — that also fixes a renamed opponent (e.g.
+// "עירוני דורות טבריה" -> "עירוני טבריה") as long as the date itself didn't move.
+// Only falls back to matching by opponent+competition (nearest date) for games
+// whose date itself was corrected, since then no seed entry shares the old date.
 function migrateGameMetadata() {
   let localChanged = false;
   games.forEach((g) => {
-    const candidates = SEASON_GAMES_SEED.filter(
-      (s) => s.opponent === g.opponent && s.competition === g.competition
-    );
-    if (candidates.length === 0) return;
+    let best = SEASON_GAMES_SEED.find((s) => s.date === g.date);
 
-    let best = candidates[0];
-    let bestDiff = Math.abs(new Date(g.date) - new Date(best.date));
-    candidates.forEach((c) => {
-      const diff = Math.abs(new Date(g.date) - new Date(c.date));
-      if (diff < bestDiff) {
-        best = c;
-        bestDiff = diff;
-      }
-    });
+    if (!best) {
+      const candidates = SEASON_GAMES_SEED.filter(
+        (s) => s.opponent === g.opponent && s.competition === g.competition
+      );
+      if (candidates.length === 0) return;
+      best = candidates[0];
+      let bestDiff = Math.abs(new Date(g.date) - new Date(best.date));
+      candidates.forEach((c) => {
+        const diff = Math.abs(new Date(g.date) - new Date(c.date));
+        if (diff < bestDiff) {
+          best = c;
+          bestDiff = diff;
+        }
+      });
+    }
 
     const updates = {};
-    ["date", "venue", "home", "final"].forEach((field) => {
+    ["date", "competition", "opponent", "venue", "home", "final"].forEach((field) => {
       if (g[field] !== best[field]) updates[field] = best[field];
     });
 
@@ -179,16 +185,21 @@ function migrateGameMetadata() {
   if (!usingFirestore && localChanged) saveLocal();
 }
 
-// Cleans up duplicate game entries (same date+opponent+competition) that could
-// have been created by a race in seedIfEmptyFirestore (two tabs both seeding an
-// empty collection before either commit finished). Keeps one copy per fixture,
-// merging in the highest quantity seen per item so no tracked snack count is lost.
+// Cleans up duplicate game entries that could have been created by a race in
+// seedIfEmptyFirestore (e.g. two tabs, possibly on different deployed versions
+// of the schedule, both seeding an empty collection before either commit
+// finished). Keyed on date alone — a team plays at most one match a day, so
+// this still catches duplicates whose opponent spelling differs between the
+// old and new schedule (migrateGameMetadata runs first and normalizes dates,
+// so true duplicates end up sharing an exact date by the time this runs).
+// Keeps one copy per fixture, merging in the highest quantity seen per item so
+// no tracked snack count is lost.
 function dedupeGames() {
   const canonicalByKey = new Map();
   const duplicateIds = [];
 
   games.forEach((g) => {
-    const key = `${g.date}|${g.opponent}|${g.competition}`;
+    const key = g.date;
     const existing = canonicalByKey.get(key);
     if (!existing) {
       canonicalByKey.set(key, g);
