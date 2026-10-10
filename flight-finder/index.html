@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>צייד סופ״שים</title>
+  <meta name="description" content="מוצא את הסופ״ש הכי זול לטוס בו - לפי חוקיות ולא לפי תאריך">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="hero">
+    <h1>✈️ צייד סופ״שים</h1>
+    <p>במקום לבחור תאריך - בוחרים חוקיות (למשל "חמישי עד שבת"), והאתר סורק את כל הסופ״שים בחודשים הקרובים ומוצא את הזול ביותר.</p>
+  </header>
+
+  <main>
+    <form id="search" class="panel" autocomplete="off">
+      <div class="row">
+        <label class="field narrow">
+          <span>מוצא</span>
+          <input id="origin" name="origin" value="TLV" maxlength="3" required>
+        </label>
+        <div class="field grow">
+          <span>יעדים <small>(ריק = כל יעד)</small></span>
+          <div class="chips" id="destChips">
+            <input id="destInput" list="destList" placeholder="הקלידו עיר או קוד, למשל אתונה / ATH">
+          </div>
+          <datalist id="destList"></datalist>
+          <div class="groups" id="groups"></div>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>החוקיות</legend>
+        <div class="presets" id="presets"></div>
+        <div class="row custom">
+          <div class="field">
+            <span>ימי יציאה</span>
+            <div class="days" id="departDays"></div>
+          </div>
+          <label class="field narrow">
+            <span>מינ׳ לילות</span>
+            <input type="number" id="minNights" min="0" max="30" value="2">
+          </label>
+          <label class="field narrow">
+            <span>מקס׳ לילות</span>
+            <input type="number" id="maxNights" min="0" max="30" value="2">
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="row">
+        <label class="field narrow">
+          <span>לסרוק</span>
+          <select id="months">
+            <option value="1">חודש קדימה</option>
+            <option value="2">חודשיים</option>
+            <option value="3" selected>3 חודשים</option>
+            <option value="4">4 חודשים</option>
+            <option value="6">חצי שנה</option>
+          </select>
+        </label>
+        <label class="field narrow">
+          <span>מחיר מקס׳ (₪)</span>
+          <input type="number" id="maxPrice" min="0" step="50" placeholder="ללא">
+        </label>
+        <label class="field narrow">
+          <span>יציאה לא לפני</span>
+          <select id="departAfter"></select>
+        </label>
+        <label class="field narrow">
+          <span>חזרה לא לפני</span>
+          <select id="returnAfter"></select>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="direct"> טיסות ישירות בלבד
+        </label>
+      </div>
+
+      <button type="submit" id="go">🔎 מצא לי סופ״ש זול</button>
+    </form>
+
+    <section id="out" hidden>
+      <div class="toolbar">
+        <div id="summary"></div>
+        <div class="toggle" role="tablist">
+          <button type="button" data-view="weekend" class="on">הזול לכל סופ״ש</button>
+          <button type="button" data-view="all">כל האפשרויות</button>
+        </div>
+      </div>
+      <div id="notice" class="notice" hidden></div>
+      <ol id="results" class="results"></ol>
+    </section>
+  </main>
+
+  <footer>
+    המחירים נאספים ממאגר חיפושים אחרונים (Aviasales/Travelpayouts) ועשויים להשתנות - לחצו על הקישורים כדי להשוות ולוודא באתרים עצמם.
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
